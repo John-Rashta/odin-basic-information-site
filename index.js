@@ -5,38 +5,37 @@ const app = express();
 
 const PORT = 8080;
 
-app.get("/", (req, res) => {
-    fs.readFile("./src/index.html", (err, data) => {
+const handleError = function sendBackErrorPage(req, res) {
+    res.sendFile("src/404.html", {root: __dirname}, function (err) {
         if (err) {
-            fs.readFile("./src/404.html", (err, data) => {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.write(data);
-                return res.end();
-            });
+            console.log("Can't find error file!");
         } else {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.write(data);
-            return res.end();
+            return;
         }
-    })  
+    });
+}
+
+app.get("/", (req, res) => {
+    res.sendFile("src/index.html", {root: __dirname}, function (err) {
+        if (err) {
+            handleError(req, res);
+        } else {
+            return;
+        }
+    })
 });
 
 app.get("/:name", (req, res) => {
     const newURL = req.url.slice(1);
-    fs.readFile(`./src/${newURL}.html`, {flag: "r"}, (err, data) => {
-                
+    res.sendFile(`src/${newURL}.html`, {root: __dirname}, function (err) {     
         if (err) {
-            fs.readFile("./src/404.html", (err, data) => {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.write(data);
-                return res.end();
-            });
+            handleError(req, res);
         } else {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.write(data);
-            return res.end();
+            return;
         }
     })
 });
+
+app.use(handleError);
 
 app.listen(PORT);
